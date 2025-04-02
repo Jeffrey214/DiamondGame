@@ -4,12 +4,12 @@ import os
 from PIL import Image, ImageTk
 from collections import deque
 
-# Board dimensions and cell size
+# Rozměry pole a velikost čtverečku
 M, N = 8, 8
 CELL_SIZE = 60
 
 def find_simple_bfs_path(board, start, end):
-    """Quick BFS to check connectivity (used in board validation)."""
+    """Rychlé BFS pro kontrolu propojení (používá se při validaci desky)."""
     m, n = len(board), len(board[0])
     queue = deque([(start, [])])
     visited = set()
@@ -27,7 +27,7 @@ def find_simple_bfs_path(board, start, end):
     return []
 
 def generate_raw_board(m, n, wall_chance=0.25, treasure_chance=0.2):
-    """Generate a board with random walls/diamonds, not guaranteed valid."""
+    """Vygeneruje desku s náhodnými zdmi/diamanty, není zaručeno, že bude platná."""
     board = [
         [" " if random.random() > wall_chance else "#" for _ in range(n)]
         for _ in range(m)
@@ -38,16 +38,16 @@ def generate_raw_board(m, n, wall_chance=0.25, treasure_chance=0.2):
             if random.random() < treasure_chance and board[i][j] != "#":
                 board[i][j] = "💎"
                 diamonds.append((i, j))
-    # Ensure start/finish are free
+    # Zajistíme, že start a cíl jsou volné
     board[0][0] = 0
     board[m-1][n-1] = 0
     return board, diamonds
 
 def generate_valid_board(m, n, wall_chance=0.25, treasure_chance=0.2, max_tries=500):
     """
-    Generate a board that:
-      - Has a path from start to finish.
-      - Every diamond is reachable from start and from that diamond to finish.
+    Vygeneruje desku, která:
+      - Má cestu od startu do cíle.
+      - Každý diamant je dosažitelný ze startu a od toho diamantu do cíle.
     """
     for _ in range(max_tries):
         board, diamonds = generate_raw_board(m, n, wall_chance, treasure_chance)
@@ -55,7 +55,8 @@ def generate_valid_board(m, n, wall_chance=0.25, treasure_chance=0.2, max_tries=
         if not path_sf:
             continue
         
-        # Check diamond connectivity
+        # Ujistíme se, že všechny diamanty jsou dostupné
+        # Ze startu a od každého diamantu k cíli
         all_reachable = True
         for d in diamonds:
             if (not find_simple_bfs_path(board, (0,0), d)
@@ -66,7 +67,7 @@ def generate_valid_board(m, n, wall_chance=0.25, treasure_chance=0.2, max_tries=
         if all_reachable:
             return board, diamonds
     
-    # Fallback: trivial board
+    # Pokud se nepodaří najít platnou desku, vrátíme prázdnou desku
     board = [[0]*n for _ in range(m)]
     board[0][0] = 0
     board[m-1][n-1] = 0
@@ -74,14 +75,14 @@ def generate_valid_board(m, n, wall_chance=0.25, treasure_chance=0.2, max_tries=
 
 def find_shortest_path_with_most_diamonds(board, diamonds):
     """
-    Volný mode BFS:
-    1) Among all shortest paths from (0,0) to (M-1,N-1),
-    2) Pick the one that collects the most diamonds as a tiebreak.
+    Volný režim BFS:
+    1) Existuje cesta mezi startem a cílem.
+    2) Vybere tu, která sbírá nejvíce diamantů.
     """
     m, n = len(board), len(board[0])
     diamond_to_idx = {d: i for i, d in enumerate(diamonds)}
     
-    start_state = (0, 0, 0)  # (row, col, bitmask)
+    start_state = (0, 0, 0)  # (řádek, sloupec, bitmask)
     queue = deque([start_state])
     dist = {start_state: 0}
     pred = {start_state: None}
@@ -93,12 +94,13 @@ def find_shortest_path_with_most_diamonds(board, diamonds):
         x, y, mask = queue.popleft()
         d = dist[(x, y, mask)]
         
-        # If we have a known finish distance, skip states beyond that distance
+        # Pokud jsme již našli cestu delší než finish_distance, přerušíme hledání
+        # (Pokud finish_distance == None, pak ještě nemáme žádnou cestu)
         if finish_distance is not None and d > finish_distance:
             break
         
         if (x, y) == (m-1, n-1):
-            # Found a shortest path
+            # Najdeme cestu k cíli
             if finish_distance is None:
                 finish_distance = d
             if d == finish_distance:
@@ -122,7 +124,8 @@ def find_shortest_path_with_most_diamonds(board, diamonds):
     if finish_distance is None:
         return []
     
-    # Among states in finish_states_same_layer, pick the one with the most diamonds
+    # Mezi všemi stavy na stejné úrovni najdeme ten, který má nejvíce diamantů
+    # (nejvyšší bitmasku)
     best_state = None
     best_diamond_count = -1
     for (fx, fy, fmask) in finish_states_same_layer:
@@ -131,7 +134,7 @@ def find_shortest_path_with_most_diamonds(board, diamonds):
             best_diamond_count = diamond_count
             best_state = (fx, fy, fmask)
     
-    # Reconstruct path
+    # Rekonstrukce cesty
     path = []
     cur = best_state
     while cur is not None:
@@ -143,12 +146,12 @@ def find_shortest_path_with_most_diamonds(board, diamonds):
 
 def find_path_exactly_t_diamonds(board, diamonds, T):
     """
-    BFS for 'Cíl' or 'Všechny' mode:
-    - Collect *exactly* T diamonds in as few steps as possible.
-    - If T == len(diamonds), that means "collect all."
+    BFS pro režim 'Cíl' nebo 'Všechny':
+    - Nasbírej *přesně* T diamantů v co nejmenším počtu kroků.
+    - Pokud T == počet diamantů, znamená to "nasbírej všechny."
     
-    State: (x, y, mask)
-    where mask is a bitmask of which diamonds have been collected.
+    Stav: (x, y, mask)
+    kde mask je bitmask, která označuje, které diamanty byly nasbírány.
     """
     if T < 0:
         return []
@@ -158,7 +161,7 @@ def find_path_exactly_t_diamonds(board, diamonds, T):
     m, n = len(board), len(board[0])
     diamond_to_idx = {d: i for i, d in enumerate(diamonds)}
     
-    start_state = (0, 0, 0)  # row, col, mask=0
+    start_state = (0, 0, 0)  # řádek, sloupec, mask=0
     dist = {start_state: 0}
     pred = {start_state: None}
     queue = deque([start_state])
@@ -167,9 +170,9 @@ def find_path_exactly_t_diamonds(board, diamonds, T):
         x, y, mask = queue.popleft()
         d = dist[(x, y, mask)]
         
-        # Check if we have T diamonds *and* are at the finish
+        # Zkontrolujeme, zda máme T diamantů *a* jsme v cíli
         if bin(mask).count("1") == T and (x, y) == (m-1, n-1):
-            # Reconstruct
+            # Rekonstrukce
             path = []
             cur = (x, y, mask)
             while cur is not None:
@@ -179,17 +182,17 @@ def find_path_exactly_t_diamonds(board, diamonds, T):
             path.reverse()
             return path
         
-        # Otherwise expand neighbors
+        # Jinak rozšíříme sousedy
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < m and 0 <= ny < n and board[nx][ny] != "#":
                 new_mask = mask
-                # If there's a diamond here, try to collect it
+                # Pokud je zde diamant, pokusíme se ho nasbírat
                 if board[nx][ny] == "💎":
                     bit_index = diamond_to_idx[(nx, ny)]
                     if not (mask & (1 << bit_index)):
                         new_mask = mask | (1 << bit_index)
-                        # If collecting pushes us above T, skip
+                        # Pokud by nasbírání překročilo T, přeskočíme
                         if bin(new_mask).count("1") > T:
                             continue
                 new_state = (nx, ny, new_mask)
@@ -198,7 +201,7 @@ def find_path_exactly_t_diamonds(board, diamonds, T):
                     pred[new_state] = (x, y, mask)
                     queue.append(new_state)
     
-    # No path found that collects exactly T diamonds
+    # Nebyla nalezena žádná cesta, která by nasbírala přesně T diamantů
     return []
 
 class GameApp:
@@ -208,7 +211,7 @@ class GameApp:
         self.root.resizable(False, False)
         self.animation_after_id = None
         
-        # Control frame
+        # Ovládací panel
         self.control_frame = tk.Frame(root)
         self.control_frame.pack(side=tk.TOP, fill=tk.X)
         
@@ -232,7 +235,7 @@ class GameApp:
         self.status_label = tk.Label(root, text="Nasbírané diamanty: 0", font=("Arial", 14))
         self.status_label.pack(pady=10)
         
-        # Load images
+        # Načtení obrázků
         script_dir = os.path.dirname(os.path.abspath(__file__))
         diamond_path = os.path.join(script_dir, "dependancies", "images", "diamond.png")
         wall_path    = os.path.join(script_dir, "dependancies", "images", "wall.png")
@@ -247,7 +250,7 @@ class GameApp:
         self.img_wall    = ImageTk.PhotoImage(wall_img)
         self.img_person  = ImageTk.PhotoImage(person_img)
         
-        # Initial board
+        # Počáteční deska
         self.reset_game(init=True)
 
     def toggle_mode(self, mode):
@@ -273,7 +276,7 @@ class GameApp:
             self.status_label.config(text="Hra resetována. Klikněte na Start pro spuštění.")
 
     def start_game(self):
-        # Disable the start button so it can't be clicked twice
+        # Deaktivujeme tlačítko Start, aby nemohlo být kliknuto dvakrát
         self.start_button.config(state=tk.DISABLED)
         
         self.current_step = 0
@@ -285,20 +288,20 @@ class GameApp:
                 target_diamonds = int(self.target_entry.get())
             except ValueError:
                 self.status_label.config(text="Zadej platné číslo pro cíl diamantů!")
-                self.start_button.config(state=tk.NORMAL)  # re-enable
+                self.start_button.config(state=tk.NORMAL)  # znovu povolit
                 return
             
             self.path = find_path_exactly_t_diamonds(self.board, self.diamonds, target_diamonds)
         
         elif mode == "Všechny":
-            # BFS path for exactly all diamonds
+            # BFS cesta pro přesně všechny diamanty
             self.path = find_path_exactly_t_diamonds(self.board, self.diamonds, len(self.diamonds))
         
         else:  # Volný
             self.path = find_shortest_path_with_most_diamonds(self.board, self.diamonds)
         
         if not self.path:
-            # If BFS fails to find a path, re-enable Start so user can try again
+            # Pokud BFS nenajde cestu, znovu povolíme Start, aby uživatel mohl zkusit znovu
             self.status_label.config(text="Nelze najít žádnou cestu do cíle!")
             self.start_button.config(state=tk.NORMAL)
             return
@@ -315,7 +318,7 @@ class GameApp:
                 x2 = x1 + CELL_SIZE
                 y2 = y1 + CELL_SIZE
                 
-                # Cell color
+                # Barva buňky
                 if (i, j) == (0, 0) or (i, j) == (M - 1, N - 1):
                     fill_color = "lightblue"
                 else:
@@ -330,20 +333,20 @@ class GameApp:
                 
                 self.canvas.create_rectangle(x1, y1, x2, y2, fill=fill_color, outline="black")
                 
-                # Image
+                # Obrázek
                 if self.board[i][j] == "#":
                     self.canvas.create_image(x1 + CELL_SIZE/2, y1 + CELL_SIZE/2, image=self.img_wall)
                 elif self.board[i][j] == "💎":
                     self.canvas.create_image(x1 + CELL_SIZE/2, y1 + CELL_SIZE/2, image=self.img_diamond)
         
-        # Player
+        # Hráč
         if player_pos:
             i, j = player_pos
             px1 = j * CELL_SIZE
             py1 = i * CELL_SIZE
             self.canvas.create_image(px1 + CELL_SIZE/2, py1 + CELL_SIZE/2, image=self.img_person)
         
-        # Labels
+        # Popisky
         self.canvas.create_text(CELL_SIZE/2, CELL_SIZE/2,
                                 text="Start", font=("Arial", 12, "bold"), fill="blue")
         self.canvas.create_text((N-1)*CELL_SIZE + CELL_SIZE/2, (M-1)*CELL_SIZE + CELL_SIZE/2,
