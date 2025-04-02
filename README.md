@@ -1,45 +1,45 @@
 # DiamondGame
 
-DiamondGame is a Python-based Tkinter application where players navigate a dynamic board filled with walls and diamonds. Choose from multiple game modes and challenge yourself to collect diamonds on the shortest path from Start to Finish!
+DiamondGame je aplikace v Pythonu založená na Tkinteru, kde hráči navigují dynamickou deskou plnou zdí a diamantů. Vyberte si z několika herních režimů a vyzvěte sami sebe, abyste nasbírali diamanty na nejkratší cestě od Startu do Cíle!
 
-## Features
+## Funkce
 
-### Multi-Mode Gameplay
-- **Volný Mode:**  
-  Automatically finds the shortest path from Start to Finish. Among all equal-length paths, it selects the route with the most diamonds collected.
-- **Všechny Mode:**  
-  Computes a minimal-step path that collects *all* diamonds on the board before finishing.
-- **Cíl Mode:**  
-  Allows players to specify an exact target number of diamonds to collect. The game computes the shortest route that collects exactly that many diamonds.
+### Herní režimy
+- **Volný režim:**  
+  Automaticky najde nejkratší cestu od Startu do Cíle. Mezi všemi cestami stejné délky vybere trasu, která nasbírá nejvíce diamantů.
+- **Všechny režim:**  
+  Vypočítá minimální počet kroků potřebných k nasbírání *všech* diamantů na desce před dokončením.
+- **Cíl režim:**  
+  Umožňuje hráčům zadat přesný počet diamantů, které chtějí nasbírat. Hra vypočítá nejkratší trasu, která nasbírá přesně tento počet diamantů.
 
-### Dynamic Board Generation
-- Increased wall density for added challenge, ensuring a valid path exists from Start to Finish while keeping all diamonds reachable.
-- Random placement of walls and diamonds guarantees a unique experience on every play.
+### Dynamické generování desky
+- Zvýšená hustota zdí pro větší výzvu, přičemž je zajištěna platná cesta od Startu do Cíle a dosažitelnost všech diamantů.
+- Náhodné umístění zdí a diamantů zaručuje jedinečný zážitek při každé hře.
 
-### Graphical Enhancements
-- Custom graphics for walls, diamonds, and the player integrated using Pillow.
-- Start and Finish cells are clearly highlighted and labeled ("Start" and "Konec").
-- Animated player movement shows the computed path and diamond collection progress.
+### Grafická vylepšení
+- Vlastní grafika pro zdi, diamanty a hráče integrovaná pomocí Pillow.
+- Buňky Start a Cíl jsou jasně zvýrazněny a označeny („Start“ a „Konec“).
+- Animovaný pohyb hráče ukazuje vypočítanou cestu a postup sbírání diamantů.
 
-### User Interface Improvements
-- Intuitive Tkinter-based GUI with clearly labeled buttons and status messages.
-- Options for selecting game modes and setting the target diamond count in Cíl mode.
-- The Start button is disabled after a single use per board to prevent multiple runs, with a dedicated Reset button to generate a new board.
+### Vylepšení uživatelského rozhraní
+- Intuitivní GUI založené na Tkinteru s jasně označenými tlačítky a stavovými zprávami.
+- Možnosti výběru herních režimů a nastavení cílového počtu diamantů v režimu Cíl.
+- Tlačítko Start je po jednom použití na desce deaktivováno, aby se zabránilo opakovanému spuštění, s vyhrazeným tlačítkem Reset pro generování nové desky.
 
-### Executable Packaging
-- Can be packaged as a standalone Windows executable (`DiamondGame.exe`) using PyInstaller.
-- Custom icon support: the final executable displays a diamond-themed icon.
-- No command prompt window appears on launch—only the Tkinter GUI is displayed.
+### Balení do spustitelného souboru
+- Lze zabalit jako samostatný spustitelný soubor pro Windows (`DiamondGame.exe`) pomocí PyInstaller.
+- Podpora vlastních ikon: konečný spustitelný soubor zobrazuje ikonu s diamantovým motivem.
+- Po spuštění se nezobrazuje žádné příkazové okno – pouze GUI Tkinter.
 
-## Bug Fixes & Enhancements
-- **Pathing Corrections:**  
-  - Resolved issues where the Všechny mode path would backtrack unnecessarily.
-  - Ensured that in Cíl mode the game collects exactly the specified number of diamonds.
-  - Re-enabled the Start button if no valid path is found so users can try again without resetting the board.
-- **Robust Board Validation:**  
-  - Improved board generation to guarantee each diamond is reachable and the Finish cell remains accessible, preventing dead ends.
+## Opravy chyb a vylepšení
+- **Opravy trasování:**  
+  - Vyřešeny problémy, kdy cesta v režimu Všechny zbytečně couvala.
+  - Zajištěno, že v režimu Cíl hra nasbírá přesně zadaný počet diamantů.
+  - Tlačítko Start je znovu povoleno, pokud nebyla nalezena žádná platná cesta, aby uživatelé mohli zkusit znovu bez resetování desky.
+- **Robustní validace desky:**  
+  - Vylepšeno generování desky tak, aby bylo zaručeno, že každý diamant je dosažitelný a buňka Cíl zůstává přístupná, čímž se zabrání slepým uličkám.
 
-## Future Plans
-- Explore additional board sizes and difficulty settings.
-- Implement customizable themes and additional graphics options.
-- Enhance path-finding efficiency for larger or more complex boards.
+## Budoucí plány
+- Prozkoumat další velikosti desek a nastavení obtížnosti.
+- Implementovat přizpůsobitelné motivy a další grafické možnosti.
+- Zlepšit efektivitu hledání cest pro větší nebo složitější desky.
